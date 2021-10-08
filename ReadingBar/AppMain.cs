@@ -30,7 +30,7 @@ namespace ReadingBar
             InitalizeSystrayMenu();
             InitalizeSettingsWindow();
 
-            // Listen for application exit events
+
             this.Exit += AppMain_Exit;
         }
 
@@ -63,7 +63,7 @@ namespace ReadingBar
             {
                 Visible = true,
                 Text = "ReadingBar",
-                Icon = SystemIcons.Application, // This will be changed to reflect the application icon
+                Icon = ReadingBar.Properties.Resources.readingbar_icon
             };
 
             systrayIcon.DoubleClick += Toggle_Overlay;
