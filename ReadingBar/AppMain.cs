@@ -14,6 +14,7 @@ namespace ReadingBar
     {
         private BarOverlayWindow overlayWindow;
         private NotifyIcon systrayIcon;
+        private SettingsWindow settingsWindow;
 
         [STAThread]
         static void Main()
@@ -26,12 +27,21 @@ namespace ReadingBar
         {
             InitalizeOverlayWindow();
             InitalizeSystrayIcon();
+            InitalizeSettingsWindow();
+            this.Exit += AppMain_Exit;
         }
 
         private void InitalizeOverlayWindow()
         {
             overlayWindow = new BarOverlayWindow();
             overlayWindow.Visibility = Visibility.Hidden;
+        }
+
+        private void InitalizeSettingsWindow()
+        {
+            settingsWindow = new SettingsWindow();
+            settingsWindow.Closing += SettingsWindow_Closing;
+            settingsWindow.ResetButton.Click += SettingsWindow_ResetButton_Click;
         }
 
         private void InitalizeSystrayIcon()
@@ -54,6 +64,7 @@ namespace ReadingBar
             ToolStripItem[] menuItems =
             {
                 new ToolStripMenuItem("Toggle", null, Toggle_Overlay),
+                new ToolStripMenuItem("Settings", null, Systray_Toggle_AppSettings),
                 new ToolStripMenuItem("Quit", null, Systray_Quit)
             };
 
@@ -77,6 +88,35 @@ namespace ReadingBar
         {
             systrayIcon.Dispose();
             Shutdown();
+        }
+        private void Systray_Toggle_AppSettings(object sender, EventArgs e)
+        {
+            if(settingsWindow == null)
+            {
+                settingsWindow = new SettingsWindow();
+            }
+
+            if(settingsWindow.IsVisible)
+            {
+                return;
+            }
+
+            settingsWindow.Visibility = Visibility.Visible;
+        }
+
+        private void SettingsWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = true;
+            settingsWindow.Hide();
+            ReadingBar.Properties.Settings.Default.Save();
+        }
+
+        public void SettingsWindow_ResetButton_Click(object sender, RoutedEventArgs e) => ReadingBar.Properties.Settings.Default.Reset();
+
+        private void AppMain_Exit(object sender, ExitEventArgs e)
+        {
+            ReadingBar.Properties.Settings.Default.Save();
+            systrayIcon.Dispose();
         }
     }
 }
