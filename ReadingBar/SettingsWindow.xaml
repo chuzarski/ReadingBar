@@ -22,6 +22,7 @@
                 />
         <Button x:Name="CloseButton" Content="Close" Margin="304,384,0,0" HorizontalAlignment="Left" Width="75" Height="20" VerticalAlignment="Top" Click="CloseButton_Click" Padding="1"/>
         <Button x:Name="ResetButton" Content="Reset" HorizontalAlignment="Left" Margin="10,384,0,0" VerticalAlignment="Top" Padding="1" Width="75" />
+        <Label Content="ReadingBar by chuzarski" HorizontalAlignment="Left" Margin="126,381,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>
