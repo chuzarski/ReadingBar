@@ -7,6 +7,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Controls;
+using Win32Point = System.Drawing.Point;
 
 using ReadingBar.util;
 
@@ -15,8 +16,14 @@ namespace ReadingBar
     public partial class BarOverlayWindow : Window
     {
         private IntPtr hWnd;
+        private Matrix pointTransformMatrix;
+        private Point wpfPoint = new Point();
+        private Point translatedMousePoint = new Point();
 
         private Rectangle OverlayRect;
+        private GlobalMouseListener MouseListener;
+
+        private double ShadingOpacity;
 
         public BarOverlayWindow()
         {
@@ -35,11 +42,14 @@ namespace ReadingBar
         {
             
             base.OnSourceInitialized(e);
-            hWnd = new WindowInteropHelper(this).Handle;
             // here we can start passing around win handles
+            hWnd = new WindowInteropHelper(this).Handle;
+            
             SetWindowLayered();
 
             // Here is where we would wire the mouse listener
+            pointTransformMatrix = PresentationSource.FromVisual(this).CompositionTarget.TransformFromDevice;
+            MouseListener = new GlobalMouseListener(hWnd, MouseMoved_Hander);
         }
 
         /// <summary>
@@ -61,7 +71,7 @@ namespace ReadingBar
             Title = "ReadingBar Overlay";
 
             // set window background and color
-            bgColorBrush = new SolidColorBrush(Colors.Gray){ Opacity = 0.1 };
+            bgColorBrush = new SolidColorBrush(Colors.Black){ Opacity = 0.05 };
             Background = bgColorBrush;
 
             // create canvas for window
@@ -74,7 +84,7 @@ namespace ReadingBar
             OverlayRect = new Rectangle()
             {
                 Fill = Brushes.Yellow,
-                Opacity = 0.4,
+                Opacity = 1,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 VerticalAlignment = VerticalAlignment.Top,
                 Height = 30,
@@ -99,6 +109,29 @@ namespace ReadingBar
             int winFlags = NativeFunctions.GetWindowLong(hWnd, NativeFunctions.EXTENDED_WINDOW_INDEX);
             NativeFunctions.SetWindowLong(hWnd, NativeFunctions.EXTENDED_WINDOW_INDEX, winFlags | NativeFunctions.WIN_LAYERED | NativeFunctions.WIN_TRANSPARENT);
         }
+
+
+        /// Event Handlers
+
+        public void MouseMoved_Hander(object sender, Win32Point pt)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                // Scale point based on local scaling
+                // Since the Transform Matrix will not take Win32 points, we have to convert to a WPF point
+                // Turns out it is quicker to call the Win32 function and convert from one point format to another
+                wpfPoint.X = pt.X;
+                wpfPoint.Y = pt.Y;
+                translatedMousePoint = pointTransformMatrix.Transform(wpfPoint);
+
+                // Move our bar
+                Canvas.SetTop(OverlayRect, CalculateRectangleMidpoint(translatedMousePoint.Y));
+            }));
+        }
+
+
+        /// util functions
+        private double CalculateRectangleMidpoint(double Y) => Y - (OverlayRect.Height / 2);
 
     }
 }

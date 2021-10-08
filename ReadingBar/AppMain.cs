@@ -5,7 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Drawing;
-using NotifyIcon = System.Windows.Forms.NotifyIcon;
+using System.Windows.Forms;
+using Application = System.Windows.Application;
 
 namespace ReadingBar
 {
@@ -30,8 +31,7 @@ namespace ReadingBar
         private void InitalizeOverlayWindow()
         {
             overlayWindow = new BarOverlayWindow();
-            overlayWindow.Show();
-            //overlayWindow.Visibility = Visibility.Hidden;
+            overlayWindow.Visibility = Visibility.Hidden;
         }
 
         private void InitalizeSystrayIcon()
@@ -44,10 +44,24 @@ namespace ReadingBar
                 Icon = SystemIcons.Application, // This will be changed to reflect the application icon
             };
 
-            systrayIcon.DoubleClick += SystrayIcon_DoubleClick;
+            systrayIcon.DoubleClick += Toggle_Overlay;
+
+            InitalizeSystrayMenu();
         }
 
-        private void SystrayIcon_DoubleClick(object sender, EventArgs e)
+        private void InitalizeSystrayMenu()
+        {
+            ToolStripItem[] menuItems =
+            {
+                new ToolStripMenuItem("Toggle", null, Toggle_Overlay),
+                new ToolStripMenuItem("Quit", null, Systray_Quit)
+            };
+
+            systrayIcon.ContextMenuStrip = new ContextMenuStrip();
+            systrayIcon.ContextMenuStrip.Items.AddRange(menuItems);
+        }
+
+        private void Toggle_Overlay(object sender, EventArgs e)
         {
 
             if (overlayWindow.Visibility.Equals(Visibility.Visible))
@@ -57,6 +71,12 @@ namespace ReadingBar
             }
 
             overlayWindow.Visibility = Visibility.Visible;
+        }
+
+        private void Systray_Quit(object sender, EventArgs e)
+        {
+            systrayIcon.Dispose();
+            Shutdown();
         }
     }
 }
