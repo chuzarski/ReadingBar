@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -23,7 +20,25 @@ namespace ReadingBar
         private Rectangle OverlayRect;
         private GlobalMouseListener MouseListener;
 
-        private double ShadingOpacity;
+        // properties
+        public bool DisableMouseTracking = false;
+        public double BGShadingOpacity
+        {
+            get { return this.Background.Opacity; }
+            set { this.Background.Opacity = value; }
+        }
+
+        public double BarOpacity
+        {
+            get { return OverlayRect.Opacity;  }
+            set { OverlayRect.Opacity = value; }
+        }
+
+        public double BarHeight
+        {
+            get { return OverlayRect.Height; }
+            set { OverlayRect.Height = value;  }
+        }
 
         public BarOverlayWindow()
         {
@@ -112,11 +127,11 @@ namespace ReadingBar
 
 
         /// Event Handlers
-
         public void MouseMoved_Hander(object sender, Win32Point pt)
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {
+                if (DisableMouseTracking) { return; }
                 // Scale point based on local scaling
                 // Since the Transform Matrix will not take Win32 points, we have to convert to a WPF point
                 // Turns out it is quicker to call the Win32 function and convert from one point format to another
@@ -133,5 +148,9 @@ namespace ReadingBar
         /// util functions
         private double CalculateRectangleMidpoint(double Y) => Y - (OverlayRect.Height / 2);
 
+        public void CenterOverlayBar()
+        {
+            Canvas.SetTop(OverlayRect, CalculateRectangleMidpoint(SystemParameters.PrimaryScreenHeight / 2));
+        }
     }
 }
